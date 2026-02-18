@@ -1,0 +1,21 @@
+[project]
+name = "mealie-mcp-server"
+version = "0.1.0"
+description = "MCP server for interacting with a self-hosted Mealie recipe management instance"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.14.4",
+    "httpx>=0.28.1",
+    "python-dotenv>=1.2.1",
+]
+
+[project.scripts]
+mealie-mcp = "mealie_mcp.server:mcp.run"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "tiktoken>=0.12.0",
+]
