@@ -10,11 +10,11 @@ services:
       # - MCP_PROFILE=full        # "core" or "full"
       # - MCP_PORT=8000
     ports:
-      - "8000:8000"
+      - "8002:8000"
     restart: unless-stopped
 
 # MCP endpoint will be available at:
-#   http://<host-ip>:8000/mcp
+#   http://<host-ip>:8002/mcp
 #
 # On Unraid, set MEALIE_URL to your Mealie container's address,
 # e.g. http://<unraid-ip>:9925 or http://mealie:9000 if on
