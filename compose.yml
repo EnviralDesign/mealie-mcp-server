@@ -1,0 +1,21 @@
+services:
+  mealie-mcp:
+    image: lucasmorgan/mealie-mcp-server:latest
+    container_name: mealie-mcp-server
+    environment:
+      # Required – point to your Mealie instance
+      - MEALIE_URL=http://mealie:9000
+      - MEALIE_API_TOKEN=your_api_token_here
+      # Optional – defaults shown
+      # - MCP_PROFILE=full        # "core" or "full"
+      # - MCP_PORT=8000
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+# MCP endpoint will be available at:
+#   http://<host-ip>:8000/mcp
+#
+# On Unraid, set MEALIE_URL to your Mealie container's address,
+# e.g. http://<unraid-ip>:9925 or http://mealie:9000 if on
+# the same Docker network.

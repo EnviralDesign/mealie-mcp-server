@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+__pycache__
+*.py[oc]
+*.egg-info
+build/
+dist/
+wheels/
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.md
+test_cli.py
+openapi.json
