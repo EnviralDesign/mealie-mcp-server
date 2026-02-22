@@ -21,26 +21,38 @@ from mealie_mcp.server import mcp
 from mealie_mcp.client import get_client
 
 
+async def get_registered_tools() -> list[Any]:
+    """Return tool objects using public APIs when available."""
+    if hasattr(mcp, "list_tools"):
+        tools = mcp.list_tools()
+        if asyncio.iscoroutine(tools):
+            tools = await tools
+        return list(tools)
+
+    # Fallback for older FastMCP versions.
+    return list(mcp._tool_manager._tools.values())
+
+
 async def call_tool(tool_name: str, **kwargs) -> Any:
     """Call an MCP tool directly and return the result."""
-    # Get the tool function from the server
+    # Get the tool function from the server.
     tool = None
-    for t in mcp._tool_manager._tools.values():
+    for t in await get_registered_tools():
         if t.name == tool_name:
             tool = t
             break
-    
+
     if tool is None:
-        raise ValueError(f"Tool '{tool_name}' not found. Available: {list_tools()}")
-    
+        raise ValueError(f"Tool '{tool_name}' not found. Available: {await list_tools()}")
+
     # Call the tool function directly
     result = await tool.fn(**kwargs)
     return result
 
 
-def list_tools() -> list[str]:
+async def list_tools() -> list[str]:
     """List all available tool names."""
-    return [t.name for t in mcp._tool_manager._tools.values()]
+    return [t.name for t in await get_registered_tools()]
 
 
 async def test_get_recipes():
@@ -132,7 +144,7 @@ async def run_all_tests():
     print("🧪 MEALIE MCP SERVER - CLI TEST HARNESS")
     print("=" * 60)
     
-    print(f"\n📦 Available tools: {', '.join(list_tools())}")
+    print(f"\n📦 Available tools: {', '.join(await list_tools())}")
     
     errors = []
     
@@ -204,13 +216,13 @@ async def main():
         await run_all_tests()
     elif args[0] == "--list":
         print("Available tools:")
-        for name in list_tools():
+        for name in await list_tools():
             print(f"  - {name}")
     elif args[0] == "parse_ingredient" and len(args) > 1:
         await test_parse_ingredient(" ".join(args[1:]))
     elif args[0] == "get_recipe" and len(args) > 1:
         await test_get_recipe(args[1])
-    elif args[0] in list_tools():
+    elif args[0] in await list_tools():
         # Generic tool call
         tool_name = args[0]
         print(f"Calling {tool_name}...")
