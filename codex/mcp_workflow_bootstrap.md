@@ -225,9 +225,78 @@ Current known context:
 
 - Kroger repo: `C:\repos\kroger-mcp-mine`
 - Unraid endpoint: `http://192.168.1.2:8003/mcp`
-- Container was observed running but unhealthy during the initial walkthrough.
+- Preferred store: Kroger Cooper, `03500445`, 5330 S Cooper St, Arlington, TX 76017.
+- Kroger preferences now persist under the container token/state directory on Unraid.
 
 Do not block recipe cleanup on pricing.
+
+### Manual Pricing Trial: Chicken Curry
+
+Target recipe:
+
+- `http://192.168.1.2:3000/g/home/r/chicken-curry`
+
+Pricing was manually added on 2026-05-19 after the recipe had already been fully structured.
+
+Resulting description format:
+
+```markdown
+---
+
+Price (Kroger, 2026-05-19)
+
+- Total cost: $16.07
+- Ingredient costs:
+  - Chicken thighs $8.98
+  - White onion $0.60
+  - Jalapeno $0.09
+  - Ginger $0.37
+  - Garlic $0.50
+  - Vegetable oil $0.12
+  - Curry powder $1.03
+  - Kosher salt $0.05
+  - Tomato paste $0.17
+  - Tomato puree $1.08
+  - Whole-milk yogurt $0.50
+  - Garam masala $0.15
+  - Basmati rice $2.03
+  - Fresh cilantro $0.40
+```
+
+Manual product choices and assumptions:
+
+- White onion: jumbo white onions at `$1.19/lb`; one large onion estimated as `0.5 lb`.
+- Jalapeno: fresh jalapenos at `$1.89/lb`; one pepper estimated as `0.05 lb`.
+- Ginger: organic ginger root at `$3.99/lb`; `2.5-inch piece` estimated as `1.5 oz`.
+- Garlic: loose garlic at `$0.50/ct`; `8 cloves` estimated as one bulb.
+- Vegetable oil: Kroger vegetable oil, `$3.79/48 fl oz`; `3 tbsp` equals `1.5 fl oz`.
+- Curry powder: Kroger curry powder, `$3.99/1.62 oz`; `2 tbsp` estimated as `0.42 oz`.
+- Kosher salt: small seasoning allowance, `$0.05`.
+- Tomato paste: Kroger tomato paste, `$0.99/6 oz`; `2 tbsp` estimated as `1 oz`.
+- Tomato puree: Kroger tomato puree, `$1.89/28 oz`; `2 cups` estimated as `16 oz`.
+- Whole-milk yogurt: Kroger plain whole milk yogurt, `$2.99/32 oz`; `2/3 cup` estimated as `5.33 oz`.
+- Chicken thighs: Tyson boneless skinless thighs at `$4.49/lb`; recipe uses `2 lb`.
+- Garam masala: Spice Islands garam masala, `$5.49/3 oz`; `1 tsp` estimated as `0.08 oz`.
+- Basmati rice: Kroger basmati rice, `$4.99/2 lb`; serving assumption was `2 cups dry rice`, about `13 oz`.
+- Fresh cilantro: fresh cilantro bunch at `$0.79/ct`; serving assumption was half a bunch.
+
+Pricing workflow lessons:
+
+- This should stay human-reviewed for now. A useful tool should produce a pricing draft or worksheet, not blindly update the recipe.
+- Clean structured Mealie ingredients make the process much easier, but grocery pricing still needs judgment.
+- Kroger search results need product selection rules: avoid odd organic-only matches when a conventional item exists, avoid huge bulk sizes unless sensible, and prefer ordinary mid-range store-brand or national-brand products.
+- Produce is the most awkward area because Kroger may price by pound, count, or omit price on the best semantic result.
+- Quantity-free recipe rows such as `for serving` need explicit assumptions. Those assumptions should either be visible in a draft or stored somewhere more structured than the final description.
+- Unit conversion is the biggest friction: tablespoons of spices to ounces, cups to ounces, count-to-weight produce estimates, and vague units such as `piece`.
+- The final public description should stay simple, matching the existing style: line separator, date, total, and per-ingredient costs. Product IDs, package sizes, and assumptions are useful for audit but too noisy for the recipe description.
+
+Potential MCP/tool direction:
+
+- Add a Kroger-backed pricing draft helper that accepts a recipe slug and returns candidate products, selected products, conversion assumptions, estimated costs, and uncertainty flags.
+- Keep a confirmation step before calling `patch_recipe`.
+- Consider storing detailed pricing metadata in recipe `extras` or an external artifact while keeping the human-facing description concise.
+- Add explicit uncertainty flags for missing prices, sale prices, quantity-free rows, produce estimates, and hand-estimated density conversions.
+- Do not require pricing to be perfect before import/cleanup work can proceed.
 
 ## Self-Bootstrapping Rules
 

@@ -16,3 +16,4 @@ wheels/
 
 # OS/editor noise
 .DS_Store
+/codex
