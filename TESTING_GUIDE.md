@@ -1,6 +1,6 @@
 # Mealie MCP Testing Guide
 
-Last updated: 2026-02-17
+Last updated: 2026-05-18
 
 This guide is aligned to the currently exposed MCP tools.
 
@@ -203,23 +203,57 @@ asyncio.run(test())
 "
 ```
 
+### 8) Import cleanup helpers on a disposable recipe
+
+These helpers intentionally mutate recipe metadata, so run them against a duplicate or test recipe.
+
+```bash
+uv run python -c "
+import asyncio
+from test_cli import call_tool
+
+async def test():
+    source = 'roasted-garlic-parmesan-fingerling-potatoes'
+    dup = await call_tool('duplicate_recipe', slug=source)
+
+    organizers = await call_tool(
+        'set_recipe_organizers',
+        slug=dup,
+        category_names=['Dinner'],
+        tag_names=['test-cleanup'],
+        tool_names=['skillet'],
+        create_missing=True,
+    )
+    assert organizers.get('status') == 'ok', 'organizer update failed'
+
+    summary = await call_tool('get_recipe_cleanup_summary', slug=dup)
+    assert summary.get('slug') == dup, 'cleanup summary failed'
+    print('OK cleanup helpers', organizers, summary['instructions'])
+
+asyncio.run(test())
+"
+```
+
 ## Tool Coverage Summary
 
 - Recipes: core CRUD + import/scrape/suggest
 - Shopping lists: full CRUD + recipe add/remove
 - Shopping items: get/add/bulk-add/update/delete
 - Organizers:
-  categories/tags CRUD in `core`
-  category/tag slug+empty + tools CRUD in `full`
+  categories/tags/tools CRUD in `core`
+  category/tag slug+empty + tool slug lookup in `full`
+  `set_recipe_organizers` in both profiles
 - Foods/Units:
-  CRUD (+ merge) in both profiles
+  CRUD (+ merge), richer food metadata, richer unit display metadata, and `get_or_create_food` in both profiles
 - Labels:
   `full` profile only
 - Parser/Formalization:
   single + batch + recipe ingredient formalization
+- Recipe cleanup:
+  ingredient-row review/repair, instruction replacement/linking, and post-import summary in both profiles
 
 ## Known Gaps
 
 - Recipe bulk actions are in client but not exposed as MCP tools.
-- `get_tool_by_slug` exists in client but is not yet exposed as an MCP tool.
+- Live Mealie has streaming recipe create endpoints that are not implemented in the client yet.
 - Most image/asset and admin/system endpoints are intentionally deferred.

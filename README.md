@@ -8,7 +8,17 @@ An MCP (Model Context Protocol) server for interacting with a self-hosted Mealie
 - Shopping lists/items management (including bulk item create)
 - Recipe organization (categories, tags, tools, foods, units, labels)
 - Ingredient parsing/formalization
-- QoL helpers: `import_or_get_recipe_from_url`, `set_recipe_tools`
+- Import cleanup helpers:
+  - `import_or_get_recipe_from_url`
+  - `set_recipe_organizers`
+  - `set_recipe_instructions`
+  - `get_recipe_ingredient_rows`
+  - `update_recipe_ingredient_row`
+  - `update_recipe_ingredient_rows`
+  - `add_recipe_ingredient_row`
+  - `delete_recipe_ingredient_row`
+  - `get_recipe_cleanup_summary`
+  - `get_or_create_food`
 - Two server profiles:
   - `core` (lean default)
   - `full` (broader surface)
@@ -88,6 +98,11 @@ uv run python test_cli.py get_recipes
 # inspect server metadata
 uv run fastmcp inspect src/mealie_mcp/server_core.py
 ```
+
+Current inspected tool counts:
+
+- `core`: 65 tools
+- `full`: 75 tools
 
 ## Project Structure
 

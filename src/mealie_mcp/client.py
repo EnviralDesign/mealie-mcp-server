@@ -349,12 +349,20 @@ class MealieClient:
     # Categories
     # =========================================================================
     
-    async def get_categories(self, page: int = 1, per_page: int = 50) -> dict[str, Any]:
+    async def get_categories(
+        self,
+        page: int = 1,
+        per_page: int = 50,
+        search: str | None = None,
+    ) -> dict[str, Any]:
         """Get all recipe categories."""
-        return await self.get("/api/organizers/categories", params={
+        params: dict[str, Any] = {
             "page": page,
             "perPage": per_page,
-        })
+        }
+        if search:
+            params["search"] = search
+        return await self.get("/api/organizers/categories", params=params)
     
     async def get_category(self, category_id: str) -> dict[str, Any]:
         """Get a category by ID."""
@@ -384,12 +392,20 @@ class MealieClient:
     # Tags
     # =========================================================================
     
-    async def get_tags(self, page: int = 1, per_page: int = 50) -> dict[str, Any]:
+    async def get_tags(
+        self,
+        page: int = 1,
+        per_page: int = 50,
+        search: str | None = None,
+    ) -> dict[str, Any]:
         """Get all recipe tags."""
-        return await self.get("/api/organizers/tags", params={
+        params: dict[str, Any] = {
             "page": page,
             "perPage": per_page,
-        })
+        }
+        if search:
+            params["search"] = search
+        return await self.get("/api/organizers/tags", params=params)
     
     async def get_tag(self, tag_id: str) -> dict[str, Any]:
         """Get a tag by ID."""
@@ -419,12 +435,20 @@ class MealieClient:
     # Tools (Kitchen Equipment)
     # =========================================================================
     
-    async def get_tools(self, page: int = 1, per_page: int = 50) -> dict[str, Any]:
+    async def get_tools(
+        self,
+        page: int = 1,
+        per_page: int = 50,
+        search: str | None = None,
+    ) -> dict[str, Any]:
         """Get all kitchen tools."""
-        return await self.get("/api/organizers/tools", params={
+        params: dict[str, Any] = {
             "page": page,
             "perPage": per_page,
-        })
+        }
+        if search:
+            params["search"] = search
+        return await self.get("/api/organizers/tools", params=params)
     
     async def get_tool(self, tool_id: str) -> dict[str, Any]:
         """Get a tool by ID."""
@@ -461,11 +485,26 @@ class MealieClient:
         """Get a food by ID."""
         return await self.get(f"/api/foods/{food_id}")
     
-    async def create_food(self, name: str, description: str = "", label_id: str | None = None) -> dict[str, Any]:
+    async def create_food(
+        self,
+        name: str,
+        description: str = "",
+        plural_name: str | None = None,
+        label_id: str | None = None,
+        aliases: list[str | dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         """Create a new food."""
         data: dict[str, Any] = {"name": name, "description": description}
+        if plural_name is not None:
+            data["pluralName"] = plural_name
         if label_id:
             data["labelId"] = label_id
+        if aliases is not None:
+            data["aliases"] = [
+                {"name": alias.strip()} if isinstance(alias, str) else alias
+                for alias in aliases
+                if (alias.strip() if isinstance(alias, str) else alias.get("name"))
+            ]
         return await self.post("/api/foods", data=data)
     
     async def update_food(self, food_id: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -504,14 +543,24 @@ class MealieClient:
         abbreviation: str = "",
         description: str = "",
         fraction: bool = True,
+        plural_name: str | None = None,
+        plural_abbreviation: str | None = None,
+        use_abbreviation: bool | None = None,
     ) -> dict[str, Any]:
         """Create a new unit."""
-        return await self.post("/api/units", data={
+        data: dict[str, Any] = {
             "name": name,
             "abbreviation": abbreviation,
             "description": description,
             "fraction": fraction,
-        })
+        }
+        if plural_name is not None:
+            data["pluralName"] = plural_name
+        if plural_abbreviation is not None:
+            data["pluralAbbreviation"] = plural_abbreviation
+        if use_abbreviation is not None:
+            data["useAbbreviation"] = use_abbreviation
+        return await self.post("/api/units", data=data)
     
     async def update_unit(self, unit_id: str, data: dict[str, Any]) -> dict[str, Any]:
         """Update a unit."""
@@ -532,12 +581,20 @@ class MealieClient:
     # Labels
     # =========================================================================
     
-    async def get_labels(self, page: int = 1, per_page: int = 50) -> dict[str, Any]:
+    async def get_labels(
+        self,
+        page: int = 1,
+        per_page: int = 50,
+        search: str | None = None,
+    ) -> dict[str, Any]:
         """Get all multi-purpose labels."""
-        return await self.get("/api/groups/labels", params={
+        params: dict[str, Any] = {
             "page": page,
             "perPage": per_page,
-        })
+        }
+        if search:
+            params["search"] = search
+        return await self.get("/api/groups/labels", params=params)
     
     async def get_label(self, label_id: str) -> dict[str, Any]:
         """Get a label by ID."""
