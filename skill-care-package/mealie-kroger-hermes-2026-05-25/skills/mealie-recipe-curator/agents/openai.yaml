@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mealie Recipe Curator"
+  short_description: "Import and clean Mealie recipes via MCP"
+  default_prompt: "Use this skill to import, structure, validate, and clean up Mealie recipes through MCP."

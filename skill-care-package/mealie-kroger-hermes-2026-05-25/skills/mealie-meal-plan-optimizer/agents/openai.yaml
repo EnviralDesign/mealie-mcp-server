@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mealie Meal Plan Optimizer"
+  short_description: "Draft cost and overlap-aware Mealie meal plans"
+  default_prompt: "Use this skill to draft weekly meal plans from Mealie recipes using price, overlap, waste, and variety tradeoffs."

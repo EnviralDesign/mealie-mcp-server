@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kroger Grocery Operator"
+  short_description: "Use Kroger MCP for products, pricing, and carts"
+  default_prompt: "Use this skill to search Kroger products, price recipe ingredients, and safely manage Kroger cart workflows."

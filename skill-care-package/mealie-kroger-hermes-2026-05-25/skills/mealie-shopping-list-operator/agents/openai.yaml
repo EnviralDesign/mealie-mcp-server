@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mealie Shopping List Operator"
+  short_description: "Manage Mealie shopping lists with structured foods"
+  default_prompt: "Use this skill to add and normalize shopping list items in Mealie while preserving useful structured foods and notes."
