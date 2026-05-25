@@ -11,6 +11,20 @@ The manual UI walkthrough lives in `codex/walkthrough_notes.md`. This document i
 - The Unraid-hosted Mealie instance may be newer than the checked-in `openapi.json`.
 - Prefer live API behavior and `fastmcp inspect` over assuming the local OpenAPI snapshot is current.
 - Browser/UI observation is still useful for understanding Mealie behavior, but routine cleanup should move toward MCP/API operations.
+- This document should eventually become a skill for the whole Mealie recipe workflow: import/create, ingredient structuring, food metadata, instruction rewriting, organizer setup, validation, corpus cleanup, and optional pricing. Pricing is only one post-process, not the center of the skill.
+
+## Future Skill Shape
+
+The eventual skill should trigger when Codex is asked to work on Mealie recipes through MCP, especially to import URLs, clean old recipes, formalize structured ingredients, make recipes cook-mode friendly, or add Kroger pricing.
+
+Keep the skill body concise and operational:
+
+- Start with the MCP-first workflow and validation loop.
+- Put detailed pricing heuristics, examples, and edge cases in a reference file.
+- Keep human judgment explicit instead of hiding decisions in opaque automation.
+- Tell Codex to prefer live Mealie data and current source pages over stale cached OpenAPI or old notes.
+- Tell Codex to use the browser only when source verification, visual cook-mode checks, or UI-only behavior matters.
+- Keep mutation safety visible: inspect first, patch narrowly, refetch after writes, and preserve user-authored data.
 
 ## Local Development Loop
 
@@ -217,9 +231,9 @@ Range yields such as `4-6 servings` often need both a numeric `recipeServings` v
 
 ## Optional Pricing Post-Process
 
-Pricing is separate from the base import workflow.
+Pricing is separate from the base import workflow. Do it only after the recipe has been imported, structured, organizer-tagged, instruction-refactored, and validated.
 
-Only consider it after the recipe has clean structured ingredients. The future workflow will likely use the Kroger MCP server to map Mealie foods to purchasable Kroger products and estimate costs.
+The current preferred posture is draft-first and hands-on. Kroger MCP can speed up product lookup, but Codex should still make the grocery/product judgment and should not blindly write a price block without reviewing the recipe and assumptions.
 
 Current known context:
 
@@ -228,7 +242,42 @@ Current known context:
 - Preferred store: Kroger Cooper, `03500445`, 5330 S Cooper St, Arlington, TX 76017.
 - Kroger preferences now persist under the container token/state directory on Unraid.
 
+Always pass `location_id="03500445"` to Kroger searches. The Kroger MCP may have a default location stored, but searches can drift when location is omitted.
+
 Do not block recipe cleanup on pricing.
+
+### Pricing Workflow
+
+1. Fetch the full Mealie recipe.
+2. Use `originalText` and the source recipe when structured rows look suspicious.
+3. Build a pricing worksheet in notes before patching the public description.
+4. Query Kroger one product at a time or in very small batches.
+5. Choose ordinary mid-range products from the Cooper store.
+6. Prefer store brand when it is a normal product, but avoid obviously odd cheapest matches.
+7. Use regular shelf price over sale price when both are visible and the regular price is available.
+8. Estimate recipe quantity as a fraction of the purchased package.
+9. Keep assumptions in the worklog, not in the public recipe description.
+10. Patch the recipe description only after the draft total and ingredient lines have been reviewed.
+
+Pricing heuristics:
+
+- Preserve product judgment as an agentic decision. Exact automation is useful for candidate lookup and arithmetic, not for fully replacing product choice.
+- Use source/original ingredient text over bad structured rows. Pricing old recipes often exposes real recipe cleanup gaps.
+- For count produce, estimate a practical weight when Kroger prices by pound.
+- For herbs, charge a whole small pack/bunch when the recipe needs a meaningful amount; prorate for tiny garnish amounts when that better matches past style.
+- For spices, oils, vinegars, sauces, rice, pasta, and cheese, prorate by recipe quantity when package size is known.
+- For vague serving rows like `for serving`, document the serving assumption in the worklog.
+- Do not add side dishes to pricing unless they are explicit recipe ingredients.
+- If the recipe is missing a core ingredient discovered during pricing, stop and repair the recipe before pricing. `Garlic Chili Noodles` was missing the noodle ingredient row and needed source verification plus ingredient cleanup first.
+- For cocktails, do not invent liquor prices under a Kroger heading. If Kroger MCP does not return reliable local liquor inventory, use a `Price (Kroger grocery items, YYYY-MM-DD)` heading, exclude the liquor from the total, and explicitly mark the liquor/liqueur lines as not priced.
+- If a close grocery proxy is used for a specialty item, keep that visible in the public line only when it materially affects trust. Example: `Peychaud's bitters` used an Angostura aromatic bitters price proxy because Kroger did not return Peychaud's.
+
+Backoff rules:
+
+- If Kroger searches start timing out, stop new Kroger calls.
+- Do not launch more sub-agents once Kroger reliability is questionable.
+- Apply only already-completed drafts that can be reviewed from Mealie/source context without more Kroger calls.
+- End the pricing run early and update the audit with the remaining recipes.
 
 ### Manual Pricing Trial: Chicken Curry
 
@@ -296,7 +345,9 @@ Potential MCP/tool direction:
 - Keep a confirmation step before calling `patch_recipe`.
 - Consider storing detailed pricing metadata in recipe `extras` or an external artifact while keeping the human-facing description concise.
 - Add explicit uncertainty flags for missing prices, sale prices, quantity-free rows, produce estimates, and hand-estimated density conversions.
+- Add an explicit `grocery_only` or `excluded_items` concept for cocktail/liquor cases so a future helper does not present partial cocktail pricing as a full drink cost.
 - Do not require pricing to be perfect before import/cleanup work can proceed.
+- Do not overfit this into a fully autonomous batch-pricing tool yet. The safer near-term improvement is a draft generator that exposes product candidates, selected products, quantity conversions, and uncertainty flags.
 
 ## Self-Bootstrapping Rules
 
@@ -341,6 +392,10 @@ A live corpus cleanup pass on 2026-05-18 confirmed the MCP-first workflow works 
 The pass also showed that raw summary metrics can overstate remaining work. A preheat, cooling, resting, or serving step may correctly have no ingredient references. The next summary iteration should distinguish procedural unlinked steps from actionable cooking steps that probably need links.
 
 The hardest remaining corpus issues were malformed ingredient rows, especially cocktail imports and rows like "1 6 ounce" or "1/2 teaspoon" with missing foods. These should be handled through `update_recipe_ingredient_row` or `update_recipe_ingredient_rows`, not ad hoc full-recipe patches.
+
+A pricing pass on 2026-05-19 showed that corpus cleanup and pricing are connected but should remain separate phases. Pricing can reveal bad recipe structure, but the fix is still recipe cleanup first, pricing second. It also confirmed that sub-agent pricing drafts can help if each agent gets one bounded recipe and the lead reviews all arithmetic/product assumptions before patching Mealie.
+
+The resumed pricing pass finished the full 55-recipe corpus. Three cocktail recipes required a special grocery-only convention because Kroger MCP did not return reliable liquor inventory for tequila, gin, whiskey, or liqueurs. This should become a first-class pricing flag rather than a hidden assumption.
 
 ## New Import Iteration Notes
 
